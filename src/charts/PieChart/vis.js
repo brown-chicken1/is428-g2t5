@@ -1,75 +1,113 @@
 import * as d3 from 'd3';
 
-const draw = (props) => {
-    const data = props.data;
-    const gender = ['M', 'F'];
-    let count = new Array(3).fill(0);
-    data.forEach(d => {
-        let genderIndex = gender.indexOf(d.Sex);
-        if (genderIndex + 1)
-            count[genderIndex] += 1;
-    });
+/**
+ * Bumpchart Module
+ */
+ var bumpChart = (function() {
+        const compact = drawingStyle === "compact";
+        const svg = d3.create("svg")
+          .attr("cursor", "default")
+          .attr("viewBox", [0, 0, width, height]);
+        
+        svg.append("g")
+          .attr("transform", `translate(${margin.left + padding},0)`)
+          .selectAll("path")
+          .data(seq(0, quarters.length))
+          .join("path")
+          .attr("stroke", "#ccc")
+          .attr("stroke-width", 2)
+          .attr("stroke-dasharray", "5,5")
+          .attr("d", d => d3.line()([[bx(d), 0], [bx(d), height - margin.bottom]]));
+        
+        const series = svg.selectAll(".series")
+          .data(chartData)
+          .join("g")
+          .attr("class", "series")
+          .attr("opacity", 1)
+          .attr("fill", d => color(d[0].rank))
+          .attr("stroke", d => color(d[0].rank))
+          .attr("transform", `translate(${margin.left + padding},0)`)
+          .on("mouseover", highlight)
+          .on("mouseout", restore);
+        
+        series.selectAll("path")
+          .data(d => d)
+          .join("path")
+          .attr("stroke-width", strokeWidth(drawingStyle))
+          .attr("d", (d, i) => { 
+            if (d.next) 
+              return d3.line()([[bx(i), by(d.rank)], [bx(i + 1), by(d.next.rank)]]);
+          });
+        
+        const bumps = series.selectAll("g")
+          .data((d, i) => d.map(v => ({territory: territories[i], profit: v, first: d[0].rank})))
+          .join("g")
+          .attr("transform", (d, i) => `translate(${bx(i)},${by(d.profit.rank)})`)
+          //.call(g => g.append("title").text((d, i) => `${d.territory} - ${quarters[i]}\n${toCurrency(d.profit.profit)}`)); 
+          .call(title);
+        
+        bumps.append("circle").attr("r", compact ? 5 : bumpRadius);
+        bumps.append("text")
+          .attr("dy", compact ? "-0.75em" : "0.35em")
+          .attr("fill", compact ? null : "white")
+          .attr("stroke", "none")
+          .attr("text-anchor", "middle")    
+          .style("font-weight", "bold")
+          .style("font-size", "14px")
+          .text(d => d.profit.rank + 1);   
+        
+        svg.append("g").call(g => drawAxis(g, 0, height - margin.top - margin.bottom + padding, d3.axisBottom(ax), true));
+        const leftY = svg.append("g").call(g => drawAxis(g, margin.left, 0, d3.axisLeft(y.domain(left))));
+        const rightY = svg.append("g").call(g => drawAxis(g, width - margin.right, 0, d3.axisRight(y.domain(right)))); 
+        
+        return svg.node();
+        
+        function highlight(e, d) {       
+          this.parentNode.appendChild(this);
+          series.filter(s => s !== d)
+            .transition().duration(500)
+            .attr("fill", "#ddd").attr("stroke", "#ddd");
+          markTick(leftY, 0);
+          markTick(rightY,  quarters.length - 1);
+          
+          function markTick(axis, pos) {
+            axis.selectAll(".tick text").filter((s, i) => i === d[pos].rank)
+              .transition().duration(500)
+              .attr("font-weight", "bold")
+              .attr("fill", color(d[0].rank));
+          }
+        }
+        
+        function restore() {
+          series.transition().duration(500)
+            .attr("fill", s => color(s[0].rank)).attr("stroke", s => color(s[0].rank));    
+          restoreTicks(leftY);
+          restoreTicks(rightY);
+          
+          function restoreTicks(axis) {
+            axis.selectAll(".tick text")
+              .transition().duration(500)
+              .attr("font-weight", "normal").attr("fill", "black");
+          }
+        }
 
-    const dataset = [
-        { label: 'Male', count: count[0] },
-        { label: 'Female', count: count[1] }
-    ]
+        drawAxis = (g, x, y, axis, domain) => {
+            g.attr("transform", `translate(${x},${y})`)
+              .call(axis)
+              .selectAll(".tick text")
+              .attr("font-size", "12px");
+            
+            if (!domain) g.select(".domain").remove();
+          }
 
-    d3.select('.vis-piechart > *').remove();
-    const margin = { top: 10, right: 20, bottom: 30, left: 40 };
-    const width = props.width - margin.left - margin.right;
-    const height = props.height - margin.top - margin.bottom;
+        title = g => g.append("title")
+            .text((d, i) => `${d.territory} - ${quarters[i]}\nRank: ${d.profit.rank + 1}\nProfit: ${toCurrency(d.profit.profit)}`)
 
-    let svg = d3.select('.vis-piechart')
-        .append('svg')
-        .attr('width', width + margin.left + margin.right)
-        .attr('height', height + margin.top + margin.bottom)
-        .append('g')
-        .attr('transform', 'translate(' + (width / 2 + margin.left) + ',' + (height / 2 + margin.top) + ')');
+        strokeWidth = d3.scaleOrdinal()
+            .domain(["default", "transit", "compact"])
+            .range([5, bumpRadius * 2 + 2, 2]);
 
-    let radius = Math.min(width, height) / 2;
-
-    let color = d3.scaleOrdinal()
-        .range(['steelblue', 'LightBlue', 'LightSteelBlue']);
-
-    let arc = d3.arc()
-        .innerRadius(0)
-        .outerRadius(radius);
-
-    let pie = d3.pie()
-        .value(function (d) { return d.count; })
-        .sort(null);
-
-    svg.selectAll('path')
-        .data(pie(dataset))
-        .enter()
-        .append('path')
-        .attr('d', arc)
-        .attr('fill', function (d, i) {
-            return color(d.data.label);
-        });
-    let legendG = svg.selectAll(".legend")
-        .data(pie(dataset))
-        .enter().append("g")
-        .attr("transform", function (d, i) {
-            return "translate(" + (i * 70 - 100) + "," + 110 + ")"; 
-        })
-        .attr("class", "legend");
-
-    legendG.append("rect")
-        .attr("width", 10)
-        .attr("height", 10)
-        .attr("fill", function (d, i) {
-            return color(i);
-        });
-
-    legendG.append("text") 
-        .text(function (d) {
-            return d.data.label;
-        })
-        .style("font-size", 12)
-        .attr("y", 10)
-        .attr("x", 11);
-}
-
-export default draw;
+        bx = d3.scalePoint()
+            .domain(seq(0, quarters.length))
+            .range([0, width - margin.left - margin.right - padding * 2])
+})();
