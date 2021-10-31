@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import './view2.css';
-import PieChart from '../../charts/PieChart2';
+import ViolinChart from '../../charts/ViolinChart';
 
 export default class View2 extends Component {
     render() {
@@ -10,7 +10,7 @@ export default class View2 extends Component {
         return (
             <div id='view2' className='pane'>
                 <div className='header'>Gender</div>
-                <PieChart data={data} width={width} height={height} />
+                <ViolinChart data={data} width={width} height={height} />
             </div>
         )
     }
