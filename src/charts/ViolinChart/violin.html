@@ -293,6 +293,17 @@
             .curve(d3.curveCatmullRom)    // This makes the line smoother to give the violin appearance. Try d3.curveStep to see the difference
         )
     console.log("moo");
+
+    var tooltip = d3.select("#my_dataviz")
+    .append("div")
+    .style("position", "absolute")
+    .style("z-index", "10")
+    .style("visibility", "hidden")
+    .style("background", "#000")
+    .text("a simple tooltip");
+
+
+
     }
 
 </script>

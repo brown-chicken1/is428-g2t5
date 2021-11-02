@@ -2,10 +2,8 @@ import * as d3 from 'd3';
 
 const draw = (props) => {
 
-    console.log("Violin chart loaded");
     let data = props.data;
 
-    console.log(data);
 
 
 // set the dimensions and margins of the graph
@@ -61,7 +59,7 @@ const draw = (props) => {
         }
     );
 
-    console.log(data);
+    // console.log(data);
 
     data.sort(function (element_a, element_b) {
         return element_b.medal - element_a.medal;
@@ -74,7 +72,7 @@ const draw = (props) => {
     data.sort(function (element_a, element_b) {
         return element_a.id - element_b.id;
     });
-    console.log(data);
+    // console.log(data);
 
 
     var dataPreProc = data;
@@ -98,7 +96,7 @@ const draw = (props) => {
         }
     }
 
-    console.log(data);
+    //console.log(data);
 
 
     // append the svg object to the body of the page
@@ -114,8 +112,8 @@ const draw = (props) => {
     // make axis
 
     let totalSport = new Set();
-    console.log(data);
-    console.log(data.length);
+    //console.log(data);
+    //console.log(data.length);
 
     if (data[0]) {
         for (let i = 0; i < data.length; i++) {
@@ -125,7 +123,7 @@ const draw = (props) => {
     }
 
     // totalSport = [...new Set(totalSport)];
-    console.log(totalSport);
+    //console.log(totalSport);
 
 
     // Show the Y scale
@@ -175,7 +173,7 @@ const draw = (props) => {
                 return [bins, median];
             }, d => d.sport);
 
-        console.log(sumstat);
+        //console.log(sumstat);
 
         // https://stackoverflow.com/questions/56795743/how-to-convert-map-to-array-of-object/56795800
         let sumstatArray = Array.from(sumstat, ([key, value]) => ({key, value}));
@@ -184,7 +182,7 @@ const draw = (props) => {
         let sumstatGoldArray = Array.from(sumstatGold, ([key, value]) => ({key, value}));
         sumstatGoldArray = sumstatGoldArray.sort((a, b) => (a.value[1] > b.value[1] ? 1 : -1));
 
-        console.log(sumstatArray);
+        //console.log(sumstatArray);
 
         // What is the biggest number of value in a bin? We need it cause this value will have a width of 100% of the bandwidth.
         var maxNum = 0
@@ -211,12 +209,12 @@ const draw = (props) => {
             }
         }
 
-        console.log(sumstatArray);
-        console.log(maxNum);
+        //console.log(sumstatArray);
+        //console.log(maxNum);
 
         let totalSport2 = sumstatArray.map(x => x.key);
 
-        console.log(totalSport2);
+        //console.log(totalSport2);
 
         var x = d3.scaleBand()
             .range([0, width])

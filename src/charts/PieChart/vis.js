@@ -3,14 +3,10 @@ import * as d3 from 'd3';
 const draw = (props) => {
     const data = props.data;
     const gender = ['M', 'F'];
-console.log("Pie chart");
-    console.log(data);
 
 
-    console.log("things");
 
     let count = new Array(3).fill(0);
-    console.log(count);
 
     data.forEach(d => {
         let genderIndex = gender.indexOf(d.Sex);
@@ -18,7 +14,6 @@ console.log("Pie chart");
             count[genderIndex] += 1;
     });
 
-    console.log(count);
 
     const dataset = [
         { label: 'Male', count: count[0] },
