@@ -91,7 +91,7 @@ function App(things) {
                     <Content style={{height: 200, width: 300}}>
                         <View1 data={data}/>
                     </Content>
-                    <Content style={{height: 200, width: 300}}>
+                    <Content style={{height: 800, width: 1500}}>
                         <View2 data={data}/>
                     </Content>
                 </Layout>
